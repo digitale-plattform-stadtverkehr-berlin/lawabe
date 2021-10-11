@@ -1,0 +1,76 @@
+body{
+    font-family: Arial;
+}
+
+label {
+    display: inline-block;
+    line-height: 30px;
+}
+
+.form-label{
+    width: 110px;
+}
+
+a{
+    color: #3388ff;
+}
+
+#map{
+    position: absolute;
+    top: 10px;
+    left: 500px;
+    right: 10px;
+    bottom: 10px;
+    box-sizing: border-box;
+    display: block;
+}
+
+.have-message{
+    border-color: #f64747;
+}
+
+input[type=text]{
+    width: 260px;
+}
+
+table{
+    border: 1px solid #666666;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+}
+
+tr:nth-child(even) {
+    background: #eeeeee;
+}
+
+th{
+    border-bottom: 1px solid #666666;
+    padding: 2px 5px;
+}
+
+td{
+    border-right: 1px solid #666666;
+    padding: 2px 5px;
+}
+
+.message-text{
+    color: #f64747;
+    font-size: 11px;
+    padding-left: 110px;
+}
+
+.outdated{
+    color: #AAAAAA;
+}
+
+button{
+    margin: 5px;
+}
+
+.radio-field-entry{
+    white-space: nowrap;
+}
+
+.message-types{
+    width: 400px;
+}
