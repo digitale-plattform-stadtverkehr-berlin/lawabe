@@ -21,6 +21,7 @@ Wenn der Service als Docker-Container läuft können diese als Umgebungsvariable
 * **AZURE_BLOB_NAME_STORE** - Pfad und Name der Persistenzdatei innerhalb des Blob-Containers.
 * **AZURE_BLOB_NAME_Export** - Pfad und Name der Exportdatei innerhalb des Blob-Containers. Diese enthält nur die Einträge, deren Gültigkeit noch nicht abgelaufen sind. 
 
+* **FUTURE_LIMIT_DAYS** - Limit ab wieviel Tage vor Begin der Gültigkeit Einträge exportiert werden - Default:```14```
 
 * **HOST** - Hostname des Servers - Default:```localhost```
 * **PORT** - Port der Anwendung - Default:```8000```

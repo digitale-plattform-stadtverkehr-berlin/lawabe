@@ -29,6 +29,8 @@ PORT_NUMBER = int(os.environ.get('PORT'))
 
 MESSAGE_TYPES = list(map(lambda s: s.split(':'), os.environ.get('MESSAGE_TYPES').split(';')))
 
+FUTURE_LIMIT_DAYS = int(os.environ.get('FUTURE_LIMIT_DAYS'))
+
 LOG_LEVEL = os.environ.get('LOG_LEVEL')
 TRACE = 'TRACE'
 DEBUG = 'DEBUG'
@@ -369,7 +371,8 @@ def writeData():
     filtered = {'type':'FeatureCollection','features':[]}
     for feature in data['features']:
         if feature['properties']['valid']['to'] is None or datetime.datetime.strptime(feature['properties']['valid']['to'], "%Y-%m-%dT%H:%M") >= datetime.datetime.now():
-            filtered['features'].append(feature)
+            if datetime.datetime.strptime(feature['properties']['valid']['from'], "%Y-%m-%dT%H:%M") - datetime.timedelta(days=FUTURE_LIMIT_DAYS) <= datetime.datetime.now():
+                filtered['features'].append(feature)
 
     with open("./landeswasserstrassen.json", encoding="utf-8", mode="w") as out_file:
         json.dump(filtered, indent=4, sort_keys=False, ensure_ascii=False, fp=out_file)
@@ -384,14 +387,15 @@ def loadData():
         info('load Data')
         download_stream = blob_store.download_blob()
         data = json.loads(download_stream.readall())
-        if not 'properties' in data:
-            data['properties'] = {}
-        if not 'lastYear' in data['properties']:
-            data['properties']['lastYear'] = datetime.datetime.now().year
-        if not 'lastNumber' in data['properties']:
-            data['properties']['lastNumber'] = 0
     else:
         info('Data not exists')
+
+    if not 'properties' in data:
+        data['properties'] = {}
+    if not 'lastYear' in data['properties']:
+        data['properties']['lastYear'] = datetime.datetime.now().year
+    if not 'lastNumber' in data['properties']:
+        data['properties']['lastNumber'] = 0
 
 loadData()
 sched.start()
