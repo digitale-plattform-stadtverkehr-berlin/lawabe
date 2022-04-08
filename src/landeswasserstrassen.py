@@ -231,11 +231,14 @@ class Server(BaseHTTPRequestHandler):
         return result
 
     def getSpatialFromEntry(self, entry):
-        if not entry is None and 'geometry' in entry and not entry['geometry'] is None:
-            if 'coordinates' in entry['geometry']:
-                return json.dumps([entry['geometry']['coordinates']], sort_keys=False)
-            elif 'geometries' in entry['geometry']:
-                return json.dumps(entry['geometry']['geometries'][len(entry['geometry']['geometries'])-1]['coordinates'], sort_keys=False)
+        if not entry is None and 'geometries' in entry and not entry['geometries'] is None:
+            spatials = [];
+            for geometry in entry['geometries']:
+                if 'coordinates' in geometry:
+                    spatials.append([geometry['coordinates']])
+                elif 'geometries' in geometry:
+                    spatials.append(geometry['geometries'][len(geometry['geometries'])-1]['coordinates'])
+            return json.dumps(spatials, sort_keys=False)
         return ''
 
     def getProperty(self, entry, key, default):
@@ -277,7 +280,7 @@ class Server(BaseHTTPRequestHandler):
         description = self.getParam(params, 'description')
         valid_from = self.getParam(params, 'valid-from')
         valid_to = self.getParam(params, 'valid-to')
-        spatial = json.loads(self.getParam(params, 'spatial')) if not self.getParam(params, 'spatial') is None else None
+        spatials = json.loads(self.getParam(params, 'spatial')) if not self.getParam(params, 'spatial') is None else None
 
         properties = {
             'number': number,
@@ -292,24 +295,28 @@ class Server(BaseHTTPRequestHandler):
             }
         }
 
-        geometry = None
-        if not spatial is None:
-            type = 'Point'
-            coordinates = spatial
-            if(len(spatial) > 1):
-                geometry = {'type': 'GeometryCollection', 'geometries': []}
-                geometry['geometries'].append({'type': 'Point', 'coordinates': spatial[0]})
-                geometry['geometries'].append({'type': 'Point', 'coordinates': spatial[len(spatial)-1]})
-                geometry['geometries'].append({'type': 'LineString', 'coordinates': spatial})
-            else:
-                geometry = {'type': 'Point', 'coordinates': spatial[0]}
+
+        geometries = []
+        if not spatials is None:
+            for spatial in spatials:
+                geometry = None
+                type = 'Point'
+                coordinates = spatial
+                if(len(spatial) > 1):
+                    geometry = {'type': 'GeometryCollection', 'geometries': []}
+                    geometry['geometries'].append({'type': 'Point', 'coordinates': spatial[0]})
+                    geometry['geometries'].append({'type': 'Point', 'coordinates': spatial[len(spatial)-1]})
+                    geometry['geometries'].append({'type': 'LineString', 'coordinates': spatial})
+                else:
+                    geometry = {'type': 'Point', 'coordinates': spatial[0]}
+                geometries.append(geometry)
 
 
         feature = {
             'type': 'Feature',
         }
         feature['properties'] = properties
-        feature['geometry'] = geometry
+        feature['geometries'] = geometries
 
         entry = self.findEntry(number, year)
 
@@ -328,7 +335,7 @@ class Server(BaseHTTPRequestHandler):
             messages['waterway'] = 'Geben Sie eine Wasserstraße an!'
         if valid_from is None:
             messages['valid-from'] = 'Geben Sie ein Startdatum an!'
-        if spatial is None:
+        if spatials is None:
             messages['spatial'] = 'Geben Sie einen Raumbezug an!'
 
         if not len(messages) > 0:
@@ -372,7 +379,11 @@ def writeData():
     for feature in data['features']:
         if feature['properties']['valid']['to'] is None or datetime.datetime.strptime(feature['properties']['valid']['to'], "%Y-%m-%dT%H:%M") >= datetime.datetime.now():
             if datetime.datetime.strptime(feature['properties']['valid']['from'], "%Y-%m-%dT%H:%M") - datetime.timedelta(days=FUTURE_LIMIT_DAYS) <= datetime.datetime.now():
-                filtered['features'].append(feature)
+                for geometry in feature['geometries']:
+                    copy = feature.copy()
+                    copy['geometry'] = geometry
+                    del copy['geometries']
+                    filtered['features'].append(copy)
 
     with open("./landeswasserstrassen.json", encoding="utf-8", mode="w") as out_file:
         json.dump(filtered, indent=4, sort_keys=False, ensure_ascii=False, fp=out_file)
@@ -397,6 +408,13 @@ def loadData():
     if not 'lastNumber' in data['properties']:
         data['properties']['lastNumber'] = 0
 
+    if 'features' in data:
+        for feature in data['features']:
+            if 'geometry' in feature:
+                feature['geometries'] = [feature['geometry']]
+                del feature['geometry']
+
+info('Started')
 loadData()
 sched.start()
 

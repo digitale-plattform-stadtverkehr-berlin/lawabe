@@ -35,7 +35,12 @@ jQuery(document).ready(function () {
                         fillOpacity: 0.2,
                     }
                 },
-                remove: false
+                remove: {
+                    selectedPathOptions: {
+                        fillColor: '#3278B9',
+                        fillOpacity: 0.2
+                    }
+                }
             }
         };
 
@@ -85,7 +90,7 @@ jQuery(document).ready(function () {
                         },
                         clearAll: {
                             title: 'Entfernen',
-                            text: 'Entfernen'
+                            text: 'Alle Entfernen'
                         }
                     },
                     buttons: {
@@ -118,13 +123,15 @@ jQuery(document).ready(function () {
         fmap.on('draw:created', function (e) {
             var layer = e.layer;
 
-            saveSpatial(layer);
-
-            editableLayers.clearLayers();
             editableLayers.addLayer(layer);
+
+            saveSpatial(editableLayers.getLayers());
         });
         fmap.on('draw:editstop ', function (e) {
-            saveSpatial(editableLayers.getLayers()[0]);
+            saveSpatial(editableLayers.getLayers());
+        });
+        fmap.on('draw:deletestop ', function (e) {
+            saveSpatial(editableLayers.getLayers());
         });
         fmap.on('draw:drawstart', function (e) {
             $(".leaflet-draw-actions").hide();
@@ -132,19 +139,22 @@ jQuery(document).ready(function () {
 
         const spatialString = $("#spatial")[0].value
         if(spatialString !== undefined && spatialString.trim().length !== 0) {
-            var coords = JSON.parse(spatialString);
-            for(var i = 0; i < coords.length; i++){
-                coord = coords[i];
-                lng = coord[0];
-                lat = coord[1];
-                coord[0] = lat;
-                coord[1] = lng;
+            var multi_coords = JSON.parse(spatialString);
+            for(var i = 0; i < multi_coords.length; i++) {
+                var coords = multi_coords[i];
+                for (var j = 0; j < coords.length; j++) {
+                    coord = coords[j];
+                    lng = coord[0];
+                    lat = coord[1];
+                    coord[0] = lat;
+                    coord[1] = lng;
+                }
+                if (coords.length > 1) {
+                    editableLayers.addLayer(L.polyline(coords, {color: 'red'}));
+                } else if (coords.length == 1) {
+                    editableLayers.addLayer(L.marker(coords[0]));
+                }
             }
-            if (coords.length > 1) {
-                editableLayers.addLayer(L.polyline(coords, {color: 'red'}));
-            }
-            else if (coords.length == 1)
-                editableLayers.addLayer(L.marker(coords[0]));
         }
     }
 
@@ -173,13 +183,17 @@ function coordsToString(coords) {
     return result;
 }
 
-function saveSpatial(layer) {
+function saveSpatial(layers) {
     var coords = "";
-
-    if (typeof layer.getLatLng === 'function') {
-        coords = coordsToString([layer.getLatLng()]);
-    } else if (typeof layer.getLatLngs === 'function') {
-        coords = coordsToString(layer.getLatLngs());
-    }
+    if(layers.length > 0)
+        coords = "[" + layers.map(layer => {
+                var coords = "";
+                if (typeof layer.getLatLng === 'function') {
+                    coords = coordsToString([layer.getLatLng()]);
+                } else if (typeof layer.getLatLngs === 'function') {
+                    coords = coordsToString(layer.getLatLngs());
+                }
+                return coords;
+        }).join(',')+']'
     $("#spatial")[0].value = coords;
 }
