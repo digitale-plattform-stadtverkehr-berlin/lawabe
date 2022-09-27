@@ -11,7 +11,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 
 conn_str = os.environ.get('AZURE_CONN_STR')
-container_name = os.environ.get('AZURE_CONTAINER_NAME')
+# container_name = os.environ.get('AZURE_CONTAINER_NAME')
+container_name = """$web"""
 blob_name_export = os.environ.get('AZURE_BLOB_NAME_EXPORT')
 blob_name_store = os.environ.get('AZURE_BLOB_NAME_STORE')
 blob_export = BlobClient.from_connection_string(conn_str=conn_str, container_name=container_name, blob_name=blob_name_export)
