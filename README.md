@@ -29,6 +29,6 @@ Wenn der Service als Docker-Container läuft können diese als Umgebungsvariable
 ## Docker Image bauen und in GitHub Registry pushen
 
 ```bash
-> docker build -tdocker.pkg.github.com/digitale-plattform-stadtverkehr-berlin/lawabe/lawabe:<TAG> .
+> docker build -t docker.pkg.github.com/digitale-plattform-stadtverkehr-berlin/lawabe/lawabe:<TAG> .
 > docker push docker.pkg.github.com/digitale-plattform-stadtverkehr-berlin/lawabe/lawabe:<TAG>
 ```
