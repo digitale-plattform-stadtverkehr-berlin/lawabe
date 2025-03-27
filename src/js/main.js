@@ -4,9 +4,9 @@ jQuery(document).ready(function () {
     if ($("#map").length > 0) {
         const center = [52.5, 13.4];
         let fmap = L.map("map").setView(center, 11);
-        L.tileLayer.wms("https://isk.geobasis-bb.de/mapproxy/webatlasde/service/wms?", {
-            layers: "WebAtlasDE_BEBB_halbton",
-            attribution: "© GeoBasis-DE/LGB,&nbsp;<a href=\"https://www.govdata.de/dl-de/by-2-0\" target=\"_blank\">dl-de/by-2-0</a>, Daten geändert"
+        L.tileLayer.wms("https://sgx.geodatenzentrum.de/wms_basemapde?", {
+            layers: "de_basemapde_web_raster_farbe",
+            attribution: "© basemap.de / BKG (Monat) (Jahr), Daten geändert"
         }).addTo(fmap);
         editableLayers.addTo(fmap)
 
@@ -61,6 +61,8 @@ jQuery(document).ready(function () {
                     },
                     buttons: {
                         rectangle: 'Raumbezug erstellen',
+                        polyline: 'Abschnitt markieren',
+                        marker: 'Punkt markieren'
                     }
                 },
                 handlers: {

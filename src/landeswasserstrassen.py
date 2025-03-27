@@ -59,7 +59,7 @@ class Server(BaseHTTPRequestHandler):
         elif self.path.endswith('.js'):
             content_type = 'text/javascript'
         elif self.path.endswith('.svg'):
-            content_type = 'svg'
+            content_type = 'image/svg+xml'
         self.send_header('Content-type', content_type)
         self.end_headers()
 
@@ -336,7 +336,7 @@ class Server(BaseHTTPRequestHandler):
             messages['waterway'] = 'Geben Sie eine Wasserstraße an!'
         if valid_from is None:
             messages['valid-from'] = 'Geben Sie ein Startdatum an!'
-        if spatials is None:
+        if spatials is None or len(spatials) == 0:
             messages['spatial'] = 'Geben Sie einen Raumbezug an!'
 
         if not len(messages) > 0:
@@ -353,8 +353,10 @@ class Server(BaseHTTPRequestHandler):
                 feature['properties']['year'] = str(currentYear)
                 data['features'].append(feature)
             else:
+                print(json.dumps(entry, sort_keys=False))
+                print(json.dumps(feature, sort_keys=False))
                 entry['properties'] = feature['properties']
-                entry['geometry'] = feature['geometry']
+                entry['geometries'] = feature['geometries']
 
             writeData()
 
